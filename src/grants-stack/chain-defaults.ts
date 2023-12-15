@@ -4,7 +4,7 @@ import * as abis from "./abis/index.js";
 export const CHAIN_DEFAULTS: ChainDefaults[] = [
   {
     id: 1,
-    rpcUrl: "https://mainnet.infura.io/v3/",
+    rpcUrl: "https://cloudflare-eth.com",
     seedSubscriptions: [
       {
         address: "0x03506eD3f57892C85DB20C36846e9c808aFe9ef4",
