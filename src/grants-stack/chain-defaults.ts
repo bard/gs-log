@@ -1,8 +1,8 @@
+import { ChainDefaults } from "../types.js";
 import * as abis from "./abis/index.js";
-import { ChainDefaults } from "./types.js";
 
-const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
-  1: {
+export const CHAIN_DEFAULTS: ChainDefaults[] = [
+  {
     id: 1,
     rpcUrl: "https://mainnet.infura.io/v3/",
     seedSubscriptions: [
@@ -23,7 +23,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  10: {
+  {
     id: 10,
     rpcUrl: "https://mainnet.optimism.io",
     seedSubscriptions: [
@@ -44,7 +44,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  250: {
+  {
     id: 250,
     rpcUrl: "https://rpcapi.fantom.network",
     seedSubscriptions: [
@@ -65,7 +65,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  58008: {
+  {
     id: 58008,
     rpcUrl: "https://sepolia.publicgoods.network",
     seedSubscriptions: [
@@ -86,7 +86,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  424: {
+  {
     id: 424,
     rpcUrl: "https://rpc.publicgoods.network",
     seedSubscriptions: [
@@ -107,7 +107,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  42161: {
+  {
     id: 42161,
     rpcUrl: "https://arb-mainnet.g.alchemy.com/v2/",
     seedSubscriptions: [
@@ -128,7 +128,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  421613: {
+  {
     id: 421613,
     rpcUrl: "https://arb-goerli.g.alchemy.com/v2/",
     seedSubscriptions: [
@@ -149,7 +149,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  80001: {
+  {
     id: 80001,
     rpcUrl: "https://rpc-mumbai.maticvigil.com/",
     seedSubscriptions: [
@@ -170,7 +170,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  137: {
+  {
     id: 137,
     rpcUrl: "https://polygon-rpc.com",
     seedSubscriptions: [
@@ -191,7 +191,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  43114: {
+  {
     id: 43114,
     rpcUrl: "https://avalanche-c-chain.publicnode.com",
     seedSubscriptions: [
@@ -212,7 +212,7 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-  43113: {
+  {
     id: 43113,
     rpcUrl: "https://avalanche-fuji-c-chain.publicnode.com",
     seedSubscriptions: [
@@ -233,12 +233,4 @@ const CHAIN_DEFAULTS: Record<number, ChainDefaults> = {
       },
     ],
   },
-};
-
-export const getChainDefaults = (chainId: number): ChainDefaults => {
-  const chainDefaults = CHAIN_DEFAULTS[chainId];
-  if (chainDefaults === undefined) {
-    throw new Error(`Chain ${chainId} is not supported.`);
-  }
-  return chainDefaults;
-};
+];

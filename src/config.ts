@@ -1,13 +1,17 @@
 import yargs from "yargs/yargs";
 import { z } from "zod";
-import { Config, LoggingTask } from "./types.js";
+import { ChainDefaults, Config, LoggingTask } from "./types.js";
 import { parseLoggingTaskSpec } from "./util.js";
-import { getChainDefaults } from "./supported-chains.js";
 
-export const parseConfig = (
-  env: Record<string, string | undefined>,
-  argv: string[],
-): Config => {
+export const parseConfig = ({
+  env,
+  argv,
+  chainDefaults,
+}: {
+  env: Record<string, string | undefined>;
+  argv: string[];
+  chainDefaults: ChainDefaults[];
+}): Config => {
   const cliArgs = yargs(argv.slice(2))
     .options({
       chains: {
@@ -63,7 +67,13 @@ export const parseConfig = (
         .split(",")
         .map((spec) => {
           const { chainId, startBlock, endBlock } = parseLoggingTaskSpec(spec);
-          const { rpcUrl: rpc, seedSubscriptions } = getChainDefaults(chainId);
+
+          const defaults = chainDefaults.find((c) => c.id === chainId);
+          if (defaults === undefined) {
+            throw new Error(`Chain ${chainId} not configured.`);
+          }
+
+          const { rpcUrl, seedSubscriptions } = defaults;
 
           return {
             chainId,
@@ -72,7 +82,7 @@ export const parseConfig = (
             rpcUrl: z
               .string()
               .url()
-              .default(rpc)
+              .default(rpcUrl)
               .parse(env[`CHAIN_${chainId}_RPC_URL`]),
             subscriptions: seedSubscriptions.map((s) => ({
               ...s,

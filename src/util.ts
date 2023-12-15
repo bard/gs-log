@@ -1,77 +1,16 @@
 import { z } from "zod";
 import split2 from "split2";
 import { CustomError } from "ts-custom-error";
-import * as abis from "./abis/index.js";
-import { LoggingTask, Subscription } from "./types.js";
-import { getChainDefaults } from "./supported-chains.js";
-
-export const inferNewSubscriptionsFromEvent = (event: {
-  address: string;
-  blockNumber: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any & { type: string };
-}): Subscription[] => {
-  switch (event.data.type) {
-    case "RoundCreatedV1":
-      return [
-        {
-          address: event.data.roundAddress,
-          abi: abis.v1.RoundImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-    case "RoundCreated": {
-      return [
-        {
-          address: event.data.roundAddress,
-          abi: abis.v2.RoundImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-    }
-    case "VotingContractCreatedV1":
-      return [
-        {
-          address: event.data.votingContractAddress,
-          abi: abis.v1.QuadraticFundingVotingStrategyImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-    case "VotingContractCreated":
-      return [
-        {
-          address: event.data.votingContractAddress,
-
-          abi: abis.v2.QuadraticFundingVotingStrategyImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-
-    case "PayoutContractCreated":
-      return [
-        {
-          address: event.data.payoutContractAddress,
-          abi: abis.v2.DirectPayoutStrategyImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-
-    case "ApplicationInReviewUpdated":
-      return [
-        {
-          address: event.address,
-          abi: abis.v2.DirectPayoutStrategyImplementation,
-          earliestBlock: event.blockNumber,
-        },
-      ];
-    default:
-      return [];
-  }
-};
+import {
+  ChainDefaults,
+  InferSubscriptionFromEvent,
+  LoggingTask,
+} from "./types.js";
 
 export const reconstructLoggingStateFromNdjsonEventStream = (
   stream: NodeJS.ReadStream,
-  // config for RPc urls
+  inferNewSubscriptionsFromEvent: InferSubscriptionFromEvent,
+  chainDefaults: ChainDefaults[],
 ): Promise<LoggingTask[]> => {
   const loggingTasksByChain: Record<number, LoggingTask> = {};
 
@@ -90,15 +29,18 @@ export const reconstructLoggingStateFromNdjsonEventStream = (
           .parse(JSON.parse(line));
 
         if (loggingTasksByChain[event.chainId] === undefined) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { rpcUrl: rpc, seedSubscriptions } = getChainDefaults(
-            event.chainId,
-          );
+          const defaults = chainDefaults.find((c) => c.id === event.chainId);
+
+          if (defaults === undefined) {
+            throw new Error(`Chain ${event.chainId} not configured.`);
+          }
+          const { rpcUrl, seedSubscriptions } = defaults;
+
           loggingTasksByChain[event.chainId] = {
             chainId: event.chainId,
             startBlock: event.blockNumber + 1,
             subscriptions: seedSubscriptions,
-            rpcUrl: rpc,
+            rpcUrl,
             endBlock: "ongoing",
           };
         }

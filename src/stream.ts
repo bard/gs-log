@@ -8,22 +8,20 @@ import {
   Indexer,
   Event,
 } from "chainsauce";
-import {
-  InspectablePromise,
-  ethersEventArgsToSerializable,
-  inferNewSubscriptionsFromEvent,
-} from "./util.js";
-import { Config, LoggingTask } from "./types.js";
+import { InspectablePromise, ethersEventArgsToSerializable } from "./util.js";
+import { Config, InferSubscriptionFromEvent, LoggingTask } from "./types.js";
 
 // Consider a chain "caught up" when within these many blocks of the target block
 const MINIMUM_BLOCKS_LEFT_BEFORE_STARTING = 500;
 
-export const streamChainEvents = async ({
+export const logChainEvents = async ({
   loggingTask,
   logger,
+  inferNewSubscriptionsFromEvent,
 }: Omit<Config, "loggingTasks"> & {
   loggingTask: LoggingTask;
   logger: Logger;
+  inferNewSubscriptionsFromEvent: InferSubscriptionFromEvent;
 }): Promise<void> => {
   const { chainId } = loggingTask;
 

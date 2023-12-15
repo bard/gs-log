@@ -2,11 +2,13 @@ import os from "node:os";
 import url from "node:url";
 import { ethers } from "ethers";
 import { pino } from "pino";
-
 import { parseConfig } from "./config.js";
-import { streamChainEvents as logChainEvents } from "./stream.js";
+import { logChainEvents } from "./stream.js";
 import { reconstructLoggingStateFromNdjsonEventStream } from "./util.js";
 import { LoggingTask } from "./types.js";
+
+import { CHAIN_DEFAULTS } from "./grants-stack/chain-defaults.js";
+import { inferNewSubscriptionsFromEvent } from "./grants-stack/infer-subscriptions.js";
 
 // ts-unused-exports:disable-next-line
 export const run = async (): Promise<void> => {
@@ -14,8 +16,12 @@ export const run = async (): Promise<void> => {
   ethers.utils.Logger.setLogLevel(ethers.utils.Logger.levels.ERROR);
 
   // TODO catch and pretty-print errors
-  // eslint-disable-next-line no-process-env
-  const config = parseConfig(process.env, process.argv);
+  const config = parseConfig({
+    // eslint-disable-next-line no-process-env
+    env: process.env,
+    argv: process.argv,
+    chainDefaults: CHAIN_DEFAULTS,
+  });
 
   const logger = pino({
     level: config.logLevel,
@@ -58,6 +64,8 @@ export const run = async (): Promise<void> => {
   } else if (config.resume) {
     loggingTasks = await reconstructLoggingStateFromNdjsonEventStream(
       process.stdin,
+      inferNewSubscriptionsFromEvent,
+      CHAIN_DEFAULTS,
     );
     if (loggingTasks.length === 0) {
       throw new Error("No logging tasks could be reconstructed from stdin");
@@ -77,6 +85,7 @@ export const run = async (): Promise<void> => {
   await Promise.all(
     loggingTasks.map(async (loggingTask) =>
       logChainEvents({
+        inferNewSubscriptionsFromEvent,
         loggingTask,
         logger: logger.child({ chain: loggingTask.chainId }),
         ...config,
